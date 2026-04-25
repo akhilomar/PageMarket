@@ -3,33 +3,31 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import type { PromotionPage } from "@promohub/db/generated/client";
 import { PAGE_NICHES, PAGE_PLATFORMS } from "@promohub/shared";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-type EditablePage = Pick<
-  PromotionPage,
-  | "id"
-  | "pageName"
-  | "platform"
-  | "pageUrl"
-  | "niche"
-  | "state"
-  | "city"
-  | "region"
-  | "language"
-  | "followersCount"
-  | "averageViews"
-  | "engagementRate"
-  | "audienceGender"
-  | "audienceAgeGroup"
-  | "audienceLocation"
-  | "description"
-  | "profileImage"
-  | "analyticsImages"
->;
+type EditablePage = {
+  id?: string;
+  pageName?: string | null;
+  platform?: string | null;
+  pageUrl?: string | null;
+  niche?: string | null;
+  state?: string | null;
+  city?: string | null;
+  region?: string | null;
+  language?: string | null;
+  followersCount?: number | null;
+  averageViews?: number | null;
+  engagementRate?: number | null;
+  audienceGender?: string | null;
+  audienceAgeGroup?: string | null;
+  audienceLocation?: string | null;
+  description?: string | null;
+  profileImage?: string | null;
+  analyticsImages?: string[] | null;
+};
 
 export function PageForm({
   page
