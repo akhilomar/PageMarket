@@ -1,0 +1,26 @@
+{
+  "name": "promohub",
+  "private": true,
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "web",
+    "mobile",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "lint": "npm run lint -w web",
+    "typecheck": "npm run typecheck -w web && npm run typecheck -w mobile && npm run typecheck -w @promohub/shared && npm run typecheck -w @promohub/db",
+    "db:generate": "prisma generate --schema ./prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema ./prisma/schema.prisma",
+    "db:push": "prisma db push --schema ./prisma/schema.prisma",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "bcryptjs": "^2.4.3",
+    "prisma": "^5.14.0",
+    "tsx": "^4.10.5",
+    "typescript": "^5.4.5"
+  }
+}

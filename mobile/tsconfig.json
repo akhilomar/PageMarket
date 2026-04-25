@@ -1,0 +1,19 @@
+{
+  "extends": "@react-native/typescript-config/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@promohub/shared": [
+        "../packages/shared/src/index"
+      ]
+    }
+  },
+  "include": [
+    "App.tsx",
+    "src/**/*"
+  ]
+}
+

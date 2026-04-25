@@ -1,0 +1,16 @@
+node_modules
+.next
+dist
+build
+coverage
+.turbo
+.env
+.env.local
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+android/.gradle
+android/app/build
+ios/build
+packages/db/generated
+

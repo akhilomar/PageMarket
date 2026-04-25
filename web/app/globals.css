@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-cream text-ink antialiased;
+  background-image:
+    radial-gradient(circle at top left, rgba(255, 107, 87, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(15, 118, 110, 0.1), transparent 24%);
+}
+
+a {
+  @apply text-inherit no-underline;
+}
+
+input,
+select,
+textarea {
+  @apply outline-none;
+}
+
+.container-shell {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.glass-card {
+  @apply rounded-3xl border border-white/60 bg-white/80 shadow-soft backdrop-blur;
+}
+

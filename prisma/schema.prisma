@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../packages/db/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  mobile    String?
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pages     PromotionPage[]
+  bookings  Booking[]
+}
+
+model PromotionPage {
+  id                  String     @id @default(uuid())
+  ownerId             String
+  owner               User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  pageName            String
+  platform            String
+  pageUrl             String
+  niche               String
+  state               String
+  city                String
+  region              String?
+  language            String?
+
+  followersCount      Int
+  averageViews        Int?
+  engagementRate      Float?
+
+  audienceGender      String?
+  audienceAgeGroup    String?
+  audienceLocation    String?
+
+  description         String?
+  profileImage        String?
+  analyticsImages     String[]
+
+  status              PageStatus @default(PENDING)
+
+  pricing             Pricing?
+
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  bookings            Booking[]
+}
+
+model Pricing {
+  id                 String        @id @default(uuid())
+  pageId             String        @unique
+  page               PromotionPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  storyPrice         Float
+  postPrice          Float
+  reelPrice          Float
+  videoMentionPrice  Float?
+  customPackagePrice Float?
+}
+
+model Booking {
+  id                  String        @id @default(uuid())
+  userId              String
+  pageId              String
+
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page                PromotionPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  promotionType       String
+  campaignTitle       String
+  campaignDescription String
+  contentLink         String?
+  preferredDate       DateTime
+  budget              Float?
+
+  status              BookingStatus @default(PENDING)
+  paymentStatus       PaymentStatus @default(UNPAID)
+
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+}
+
+enum Role {
+  USER
+  CREATOR
+  ADMIN
+}
+
+enum PageStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
