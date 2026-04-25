@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
     try {
       const formData = new FormData(event.currentTarget);
+      const mobileValue = String(formData.get("mobile") || "").trim();
       const payload =
         mode === "register"
           ? {
@@ -26,7 +28,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
               email: String(formData.get("email")),
               password: String(formData.get("password")),
               role: String(formData.get("role")),
-              mobile: String(formData.get("mobile") || "")
+              ...(mobileValue ? { mobile: mobileValue } : {})
             }
           : {
               email: String(formData.get("email")),
@@ -37,7 +39,14 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError("Unable to continue. Please check your details and try again.");
+      if (axios.isAxiosError(err)) {
+        const message =
+          (err.response?.data as { message?: string } | undefined)?.message ||
+          "Unable to continue. Please check your details and try again.";
+        setError(message);
+      } else {
+        setError("Unable to continue. Please check your details and try again.");
+      }
     } finally {
       setLoading(false);
     }

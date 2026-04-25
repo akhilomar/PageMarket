@@ -2,7 +2,6 @@ import axios from "axios";
 import { env } from "./env";
 
 export const api = axios.create({
-  baseURL: env.apiUrl,
+  baseURL: typeof window === "undefined" ? env.apiUrl : "/api",
   withCredentials: true
 });
-
