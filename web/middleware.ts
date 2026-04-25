@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getRequestToken, verifyToken } from "./lib/auth";
 
 const protectedPaths = ["/dashboard", "/creator", "/admin", "/pages/new"];
 
@@ -11,20 +10,19 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = getRequestToken(request);
+  const token =
+    request.cookies.get("promohub_token")?.value ??
+    (request.headers.get("authorization")?.startsWith("Bearer ")
+      ? request.headers.get("authorization")?.slice(7)
+      : null);
+
   if (!token) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  try {
-    verifyToken(token);
-    return NextResponse.next();
-  } catch {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: ["/dashboard/:path*", "/creator/:path*", "/admin/:path*", "/pages/new", "/pages/:path*/edit"]
 };
-
