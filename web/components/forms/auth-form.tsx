@@ -8,6 +8,44 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+type ApiErrorPayload = {
+  message?: string;
+  errors?: {
+    fieldErrors?: Record<string, string[] | undefined>;
+    formErrors?: string[];
+  };
+};
+
+function getApiErrorMessage(error: unknown) {
+  if (!axios.isAxiosError<ApiErrorPayload>(error)) {
+    return "Unable to continue. Please check your details and try again.";
+  }
+
+  const data = error.response?.data;
+  const fieldErrors = data?.errors?.fieldErrors;
+  const formErrors = data?.errors?.formErrors;
+
+  if (fieldErrors) {
+    const firstFieldError = Object.values(fieldErrors).find(
+      (messages): messages is string[] => Array.isArray(messages) && messages.length > 0
+    );
+
+    if (firstFieldError?.length) {
+      return firstFieldError[0];
+    }
+  }
+
+  if (formErrors?.length) {
+    return formErrors[0];
+  }
+
+  if (data?.message) {
+    return data.message;
+  }
+
+  return "Unable to continue. Please check your details and try again.";
+}
+
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -39,14 +77,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        const message =
-          (err.response?.data as { message?: string } | undefined)?.message ||
-          "Unable to continue. Please check your details and try again.";
-        setError(message);
-      } else {
-        setError("Unable to continue. Please check your details and try again.");
-      }
+      setError(getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
