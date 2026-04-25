@@ -115,8 +115,6 @@ If an API payload changes, update here first.
 
 - `src/prisma.ts`:
   Prisma singleton wrapper
-- `generated/client/`:
-  generated Prisma client output after `prisma generate`
 
 ## Core Domain Models
 

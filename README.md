@@ -115,5 +115,5 @@ iOS release builds should be created in Xcode after installing native dependenci
 
 - Authentication uses JWTs in `httpOnly` cookies for web and bearer tokens for mobile.
 - Validation is shared with Zod across the stack.
-- Prisma client is generated into `packages/db/generated/client`.
+- Prisma client uses the standard `@prisma/client` generation path.
 - Deploy the `web` workspace to Vercel with `DATABASE_URL` and `JWT_SECRET` configured.

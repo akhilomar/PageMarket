@@ -12,5 +12,3 @@ pnpm-lock.yaml
 android/.gradle
 android/app/build
 ios/build
-packages/db/generated
-
