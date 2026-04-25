@@ -50,6 +50,21 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<"USER" | "CREATOR">("USER");
+
+  function getPostAuthPath(user: { role?: string }, instagramProfile?: string) {
+    if (user.role === "ADMIN") {
+      return "/admin";
+    }
+
+    if (user.role === "CREATOR") {
+      return instagramProfile
+        ? `/pages/new?instagramProfile=${encodeURIComponent(instagramProfile)}`
+        : "/creator";
+    }
+
+    return "/dashboard";
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -59,6 +74,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     try {
       const formData = new FormData(event.currentTarget);
       const mobileValue = String(formData.get("mobile") || "").trim();
+      const instagramProfileValue = String(formData.get("instagramProfile") || "").trim();
       const payload =
         mode === "register"
           ? {
@@ -73,9 +89,13 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
               password: String(formData.get("password"))
             };
 
-      await api.post(`/auth/${mode}`, payload);
-      router.push("/dashboard");
-      router.refresh();
+      const response = await api.post(`/auth/${mode}`, payload);
+      const nextPath = getPostAuthPath(
+        response.data?.user ?? {},
+        mode === "register" && selectedRole === "CREATOR" ? instagramProfileValue : undefined
+      );
+
+      window.location.assign(nextPath);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -93,11 +113,23 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       {mode === "register" ? (
         <label className="flex flex-col gap-2 text-sm font-medium text-ink/80">
           <span>Role</span>
-          <select name="role" className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm">
+          <select
+            name="role"
+            value={selectedRole}
+            onChange={(event) => setSelectedRole(event.target.value as "USER" | "CREATOR")}
+            className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm"
+          >
             <option value="USER">Brand/User</option>
             <option value="CREATOR">Creator</option>
           </select>
         </label>
+      ) : null}
+      {mode === "register" && selectedRole === "CREATOR" ? (
+        <Input
+          label="Instagram Profile"
+          name="instagramProfile"
+          placeholder="https://instagram.com/yourhandle or @yourhandle"
+        />
       ) : null}
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
       <Button disabled={loading} type="submit">

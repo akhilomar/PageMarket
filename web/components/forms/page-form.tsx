@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { PAGE_NICHES, PAGE_PLATFORMS } from "@promohub/shared";
@@ -30,12 +30,65 @@ type EditablePage = {
 };
 
 export function PageForm({
-  page
+  page,
+  initialInstagramProfile
 }: {
   page?: EditablePage;
+  initialInstagramProfile?: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [instagramProfile, setInstagramProfile] = useState(initialInstagramProfile || "");
+  const [instagramUsername, setInstagramUsername] = useState("");
+  const [pageName, setPageName] = useState(String(page?.pageName || ""));
+  const [pageUrl, setPageUrl] = useState(String(page?.pageUrl || ""));
+  const [profileImage, setProfileImage] = useState(String(page?.profileImage || ""));
+
+  function extractInstagramUsername(value: string) {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+      return "";
+    }
+
+    if (trimmedValue.startsWith("@")) {
+      return trimmedValue.slice(1).split(/[/?#]/)[0];
+    }
+
+    try {
+      const normalizedValue = trimmedValue.startsWith("http") ? trimmedValue : `https://${trimmedValue}`;
+      const parsedUrl = new URL(normalizedValue);
+      const username = parsedUrl.pathname.split("/").filter(Boolean)[0];
+      return username || "";
+    } catch {
+      return trimmedValue.replace(/^@/, "").split(/[/?#]/)[0];
+    }
+  }
+
+  function formatPageNameFromUsername(username: string) {
+    if (!username) {
+      return "";
+    }
+
+    return username
+      .replace(/[._-]+/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  useEffect(() => {
+    const username = extractInstagramUsername(instagramProfile);
+    setInstagramUsername(username);
+
+    if (!page?.id) {
+      if (username) {
+        setPageUrl(`https://instagram.com/${username}`);
+        setProfileImage(`https://unavatar.io/instagram/${username}`);
+        setPageName((currentValue) => currentValue || formatPageNameFromUsername(username));
+      } else {
+        setPageUrl("");
+        setProfileImage("");
+      }
+    }
+  }, [instagramProfile, page?.id]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,7 +132,21 @@ export function PageForm({
 
   return (
     <form onSubmit={handleSubmit} className="glass-card grid gap-4 p-6 md:grid-cols-2">
-      <Input name="pageName" label="Page Name" defaultValue={String(page?.pageName || "")} />
+      <Input
+        name="instagramProfile"
+        label="Instagram Profile"
+        value={instagramProfile}
+        onChange={(event) => setInstagramProfile(event.target.value)}
+        placeholder="https://instagram.com/yourhandle or @yourhandle"
+      />
+      <Input
+        name="instagramUsername"
+        label="Instagram Username"
+        value={instagramUsername ? `@${instagramUsername}` : ""}
+        readOnly
+        placeholder="@username"
+      />
+      <Input name="pageName" label="Page Name" value={pageName} onChange={(event) => setPageName(event.target.value)} />
       <label className="flex flex-col gap-2 text-sm font-medium text-ink/80">
         <span>Platform</span>
         <select name="platform" defaultValue={String(page?.platform || "Instagram")} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm">
@@ -90,7 +157,7 @@ export function PageForm({
           ))}
         </select>
       </label>
-      <Input name="pageUrl" label="Page URL" defaultValue={String(page?.pageUrl || "")} />
+      <Input name="pageUrl" label="Page URL" value={pageUrl} onChange={(event) => setPageUrl(event.target.value)} />
       <label className="flex flex-col gap-2 text-sm font-medium text-ink/80">
         <span>Niche</span>
         <select name="niche" defaultValue={String(page?.niche || "Tech")} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm">
@@ -111,7 +178,12 @@ export function PageForm({
       <Input name="audienceGender" label="Audience Gender" defaultValue={String(page?.audienceGender || "")} />
       <Input name="audienceAgeGroup" label="Audience Age Group" defaultValue={String(page?.audienceAgeGroup || "")} />
       <Input name="audienceLocation" label="Audience Location" defaultValue={String(page?.audienceLocation || "")} />
-      <Input name="profileImage" label="Profile Image URL" defaultValue={String(page?.profileImage || "")} />
+      <Input
+        name="profileImage"
+        label="Profile Image URL"
+        value={profileImage}
+        onChange={(event) => setProfileImage(event.target.value)}
+      />
       <div className="md:col-span-2">
         <Input
           name="analyticsImages"
@@ -120,6 +192,11 @@ export function PageForm({
           placeholder="Comma separated image URLs"
         />
       </div>
+      {!page?.id ? (
+        <p className="md:col-span-2 text-sm text-ink/60">
+          We derive the Instagram username from the profile link and prefill the page name, profile URL, and a best-effort avatar source automatically.
+        </p>
+      ) : null}
       <label className="md:col-span-2 flex flex-col gap-2 text-sm font-medium text-ink/80">
         <span>Description</span>
         <textarea
