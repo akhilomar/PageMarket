@@ -7,7 +7,7 @@ import { PAGE_NICHES, PAGE_PLATFORMS } from "@promohub/shared";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { currency, getFollowerPricingHint, getGeneratedProfileImageUrl } from "@/lib/utils";
+import { currency, getFollowerPricingHint, getThirdPartyProfileImageUrl } from "@/lib/utils";
 
 type EditablePage = {
   id?: string;
@@ -32,22 +32,25 @@ type EditablePage = {
 
 export function PageForm({
   page,
-  initialInstagramProfile
+  initialProfileUrl,
+  initialPlatform
 }: {
   page?: EditablePage;
-  initialInstagramProfile?: string;
+  initialProfileUrl?: string;
+  initialPlatform?: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [instagramProfile, setInstagramProfile] = useState(initialInstagramProfile || "");
-  const [instagramUsername, setInstagramUsername] = useState("");
+  const [profileUrlInput, setProfileUrlInput] = useState(initialProfileUrl || "");
+  const [profileUsername, setProfileUsername] = useState("");
   const [pageName, setPageName] = useState(String(page?.pageName || ""));
-  const [pageUrl, setPageUrl] = useState(String(page?.pageUrl || ""));
+  const [pageUrl, setPageUrl] = useState(String(page?.pageUrl || initialProfileUrl || ""));
   const [profileImage, setProfileImage] = useState(String(page?.profileImage || ""));
   const [followersCount, setFollowersCount] = useState(String(page?.followersCount || ""));
+  const [platform, setPlatform] = useState(String(page?.platform || initialPlatform || "Instagram"));
   const followerPricingHint = getFollowerPricingHint(Number(followersCount) || 0);
 
-  function extractInstagramUsername(value: string) {
+  function extractProfileUsername(value: string) {
     const trimmedValue = value.trim();
     if (!trimmedValue) {
       return "";
@@ -78,20 +81,37 @@ export function PageForm({
   }
 
   useEffect(() => {
-    const username = extractInstagramUsername(instagramProfile);
-    setInstagramUsername(username);
+    const username = extractProfileUsername(profileUrlInput);
+    setProfileUsername(username);
 
     if (!page?.id) {
       if (username) {
-        setPageUrl(`https://instagram.com/${username}`);
-        setProfileImage(getGeneratedProfileImageUrl(formatPageNameFromUsername(username) || username));
+        const normalizedUrl = profileUrlInput.startsWith("http")
+          ? profileUrlInput
+          : platform.toLowerCase() === "instagram"
+            ? `https://instagram.com/${username}`
+            : `https://${profileUrlInput.replace(/^@/, "")}`;
+        setPageUrl(normalizedUrl);
+        setProfileImage(
+          getThirdPartyProfileImageUrl({
+            platform,
+            profileUrl: normalizedUrl,
+            pageName: formatPageNameFromUsername(username) || username
+          })
+        );
         setPageName((currentValue) => currentValue || formatPageNameFromUsername(username));
       } else {
-        setPageUrl("");
-        setProfileImage("");
+        setPageUrl(profileUrlInput);
+        setProfileImage(
+          getThirdPartyProfileImageUrl({
+            platform,
+            profileUrl: profileUrlInput,
+            pageName
+          })
+        );
       }
     }
-  }, [instagramProfile, page?.id]);
+  }, [profileUrlInput, platform, page?.id, pageName]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -136,23 +156,28 @@ export function PageForm({
   return (
     <form onSubmit={handleSubmit} className="glass-card grid gap-4 p-6 md:grid-cols-2">
       <Input
-        name="instagramProfile"
-        label="Instagram Profile"
-        value={instagramProfile}
-        onChange={(event) => setInstagramProfile(event.target.value)}
-        placeholder="https://instagram.com/yourhandle or @yourhandle"
+        name="profileUrlInput"
+        label="Page Profile URL"
+        value={profileUrlInput}
+        onChange={(event) => setProfileUrlInput(event.target.value)}
+        placeholder="https://instagram.com/yourhandle or other page link"
       />
       <Input
-        name="instagramUsername"
-        label="Instagram Username"
-        value={instagramUsername ? `@${instagramUsername}` : ""}
+        name="profileUsername"
+        label="Detected Username"
+        value={profileUsername ? `@${profileUsername}` : ""}
         readOnly
         placeholder="@username"
       />
       <Input name="pageName" label="Page Name" value={pageName} onChange={(event) => setPageName(event.target.value)} />
       <label className="flex flex-col gap-2 text-sm font-medium text-ink/80">
         <span>Platform</span>
-        <select name="platform" defaultValue={String(page?.platform || "Instagram")} className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm">
+        <select
+          name="platform"
+          value={platform}
+          onChange={(event) => setPlatform(event.target.value)}
+          className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm"
+        >
           {PAGE_PLATFORMS.map((platform) => (
             <option key={platform} value={platform}>
               {platform}
@@ -203,7 +228,7 @@ export function PageForm({
       </div>
       {!page?.id ? (
         <p className="md:col-span-2 text-sm text-ink/60">
-          We derive the Instagram username from the profile link and prefill the page name, profile URL, and a reliable generated avatar automatically.
+          We derive the page username from the profile link and use Unavatar as a third-party image provider, with a generated fallback when needed.
         </p>
       ) : null}
       {followerPricingHint ? (

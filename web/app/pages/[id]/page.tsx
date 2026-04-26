@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@promohub/db";
 import { Button } from "@/components/ui/button";
-import { currency, getInstagramUsernameFromUrl } from "@/lib/utils";
+import { currency, getInstagramUsernameFromUrl, getThirdPartyProfileImageUrl } from "@/lib/utils";
 
 export default async function PageDetailPage({ params }: { params: { id: string } }) {
   const page = await prisma.promotionPage.findUnique({
@@ -12,14 +12,19 @@ export default async function PageDetailPage({ params }: { params: { id: string 
 
   if (!page) notFound();
   const username = getInstagramUsernameFromUrl(page.pageUrl);
+  const heroImage = page.profileImage || getThirdPartyProfileImageUrl({
+    platform: page.platform,
+    profileUrl: page.pageUrl,
+    pageName: page.pageName
+  });
 
   return (
     <main className="container-shell grid gap-8 py-12 lg:grid-cols-[1.5fr_0.8fr]">
       <section className="glass-card space-y-6 p-8">
         <div className="overflow-hidden rounded-[2rem] bg-sand">
-          {page.profileImage ? (
+          {heroImage ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={page.profileImage} alt={page.pageName} className="h-72 w-full object-cover" />
+            <img src={heroImage} alt={page.pageName} className="h-72 w-full object-cover" />
           ) : (
             <div className="flex h-72 items-center justify-center text-7xl font-black text-ink/30">
               {page.pageName.slice(0, 1)}

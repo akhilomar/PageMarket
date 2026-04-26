@@ -14,6 +14,13 @@ export const loginSchema = z.object({
   mobileClient: z.boolean().optional().default(false)
 });
 
+export const profileUpdateSchema = z.object({
+  name: z.string().min(2).max(80),
+  email: z.string().email(),
+  mobile: z.string().min(8).max(20).optional(),
+  password: z.string().min(6).max(100).optional()
+});
+
 export const pricingSchema = z.object({
   pageId: z.string().uuid(),
   storyPrice: z.number().nonnegative(),

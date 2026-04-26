@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { currency, getInstagramUsernameFromUrl } from "@/lib/utils";
+import { currency, getInstagramUsernameFromUrl, getThirdPartyProfileImageUrl } from "@/lib/utils";
 
 interface PageCardProps {
   page: {
@@ -24,13 +24,18 @@ interface PageCardProps {
 
 export function PageCard({ page }: PageCardProps) {
   const username = getInstagramUsernameFromUrl(page.pageUrl);
+  const previewImage = page.profileImage || getThirdPartyProfileImageUrl({
+    platform: page.platform,
+    profileUrl: page.pageUrl,
+    pageName: page.pageName
+  });
 
   return (
     <Link href={`/pages/${page.id}`} className="glass-card overflow-hidden transition hover:-translate-y-1">
       <div className="flex h-44 items-center justify-center overflow-hidden bg-gradient-to-br from-sand via-white to-teal/10">
-        {page.profileImage ? (
+        {previewImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={page.profileImage} alt={page.pageName} className="h-full w-full object-cover" />
+          <img src={previewImage} alt={page.pageName} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-3xl font-black text-ink/40 shadow-soft">
             {page.pageName.slice(0, 1)}

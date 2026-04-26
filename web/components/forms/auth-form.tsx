@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import axios from "axios";
+import { PAGE_PLATFORMS } from "@promohub/shared";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,19 +47,23 @@ function getApiErrorMessage(error: unknown) {
 }
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<"USER" | "CREATOR">("USER");
+  const [selectedPagePlatform, setSelectedPagePlatform] = useState("Instagram");
 
-  function getPostAuthPath(user: { role?: string }, instagramProfile?: string) {
+  function getPostAuthPath(
+    user: { role?: string },
+    profileUrl?: string,
+    pagePlatform?: string
+  ) {
     if (user.role === "ADMIN") {
       return "/admin";
     }
 
     if (user.role === "CREATOR") {
-      return instagramProfile
-        ? `/pages/new?instagramProfile=${encodeURIComponent(instagramProfile)}`
+      return profileUrl
+        ? `/pages/new?profileUrl=${encodeURIComponent(profileUrl)}&platform=${encodeURIComponent(pagePlatform || "Instagram")}`
         : "/creator";
     }
 
@@ -74,7 +78,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     try {
       const formData = new FormData(event.currentTarget);
       const mobileValue = String(formData.get("mobile") || "").trim();
-      const instagramProfileValue = String(formData.get("instagramProfile") || "").trim();
+      const pageProfileValue = String(formData.get("pageProfileUrl") || "").trim();
       const payload =
         mode === "register"
           ? {
@@ -92,7 +96,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       const response = await api.post(`/auth/${mode}`, payload);
       const nextPath = getPostAuthPath(
         response.data?.user ?? {},
-        mode === "register" && selectedRole === "CREATOR" ? instagramProfileValue : undefined
+        mode === "register" && selectedRole === "CREATOR" ? pageProfileValue : undefined,
+        mode === "register" && selectedRole === "CREATOR" ? selectedPagePlatform : undefined
       );
 
       window.location.assign(nextPath);
@@ -125,11 +130,27 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         </label>
       ) : null}
       {mode === "register" && selectedRole === "CREATOR" ? (
-        <Input
-          label="Instagram Profile"
-          name="instagramProfile"
-          placeholder="https://instagram.com/yourhandle or @yourhandle"
-        />
+        <>
+          <label className="flex flex-col gap-2 text-sm font-medium text-ink/80">
+            <span>Page Platform</span>
+            <select
+              value={selectedPagePlatform}
+              onChange={(event) => setSelectedPagePlatform(event.target.value)}
+              className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm"
+            >
+              {PAGE_PLATFORMS.map((platform) => (
+                <option key={platform} value={platform}>
+                  {platform}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Input
+            label="Page Profile URL"
+            name="pageProfileUrl"
+            placeholder="https://instagram.com/yourhandle or other page link"
+          />
+        </>
       ) : null}
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
       <Button disabled={loading} type="submit">

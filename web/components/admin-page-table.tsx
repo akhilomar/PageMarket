@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
-import { currency } from "@/lib/utils";
+import { currency, getThirdPartyProfileImageUrl } from "@/lib/utils";
 
 type AdminPageRecord = {
   id: string;
@@ -51,9 +52,13 @@ export function AdminPageTable({ pages }: { pages: AdminPageRecord[] }) {
       {pages.map((page) => (
         <div key={page.id} className="glass-card grid gap-5 p-5 lg:grid-cols-[100px_1fr_260px]">
           <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-sand">
-            {page.profileImage ? (
+            {(page.profileImage || page.pageUrl) ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={page.profileImage} alt={page.pageName} className="h-full w-full object-cover" />
+              <img
+                src={page.profileImage || getThirdPartyProfileImageUrl({ platform: page.platform, profileUrl: page.pageUrl, pageName: page.pageName })}
+                alt={page.pageName}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <span className="text-2xl font-black text-ink/50">{page.pageName.slice(0, 1)}</span>
             )}
@@ -85,6 +90,11 @@ export function AdminPageTable({ pages }: { pages: AdminPageRecord[] }) {
             >
               Mark Active
             </Button>
+            <Link href={`/pages/${page.id}/edit`}>
+              <Button className="w-full" type="button" variant="ghost">
+                Edit Info
+              </Button>
+            </Link>
             <Button
               disabled={updatingPageId === page.id}
               variant="ghost"
@@ -105,4 +115,3 @@ export function AdminPageTable({ pages }: { pages: AdminPageRecord[] }) {
     </div>
   );
 }
-

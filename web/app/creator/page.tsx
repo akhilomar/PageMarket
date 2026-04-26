@@ -30,9 +30,14 @@ export default async function CreatorDashboardPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-coral">Creator</p>
           <h1 className="text-4xl font-black">Manage your pages</h1>
         </div>
-        <Link href="/pages/new">
-          <Button>Add Page</Button>
-        </Link>
+        <div className="flex gap-3">
+          <Link href="/settings">
+            <Button variant="ghost">Profile Settings</Button>
+          </Link>
+          <Link href="/pages/new">
+            <Button>Add Page</Button>
+          </Link>
+        </div>
       </div>
       <section className="grid gap-6 lg:grid-cols-2">
         {pages.map((page) => (
@@ -79,4 +84,3 @@ export default async function CreatorDashboardPage() {
     </main>
   );
 }
-

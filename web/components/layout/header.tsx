@@ -16,6 +16,7 @@ export async function Header() {
           <Link href="/dashboard">Dashboard</Link>
           <Link href="/creator">Creator</Link>
           <Link href="/admin">Admin</Link>
+          <Link href="/settings">Settings</Link>
         </nav>
         <div className="flex items-center gap-3">
           {user ? (
@@ -42,4 +43,3 @@ export async function Header() {
     </header>
   );
 }
-

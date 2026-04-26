@@ -13,8 +13,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Header />
         {children}
+        <footer className="container-shell py-8 text-center text-xs text-ink/50">
+          <a href="https://unavatar.io" target="_blank" rel="noreferrer">
+            Avatars provided by Unavatar
+          </a>
+        </footer>
       </body>
     </html>
   );
 }
-
