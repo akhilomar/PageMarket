@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import { PAGE_NICHES, PAGE_PLATFORMS } from "@promohub/shared";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -33,14 +34,18 @@ type EditablePage = {
 export function PageForm({
   page,
   initialProfileUrl,
-  initialPlatform
+  initialPlatform,
+  redirectTo = "/creator"
 }: {
   page?: EditablePage;
   initialProfileUrl?: string;
   initialPlatform?: string;
+  redirectTo?: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [profileUrlInput, setProfileUrlInput] = useState(initialProfileUrl || "");
   const [profileUsername, setProfileUsername] = useState("");
   const [pageName, setPageName] = useState(String(page?.pageName || ""));
@@ -116,6 +121,8 @@ export function PageForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
+    setError(null);
+    setMessage(null);
     const formData = new FormData(event.currentTarget);
     const payload = {
       pageName: String(formData.get("pageName")),
@@ -143,11 +150,19 @@ export function PageForm({
     try {
       if (page?.id) {
         await api.put(`/pages/${page.id}`, payload);
+        setMessage("Page details updated successfully.");
       } else {
         await api.post("/pages", payload);
+        setMessage("Page created successfully.");
       }
-      router.push("/creator");
+      router.push(redirectTo);
       router.refresh();
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError((err.response?.data as { message?: string } | undefined)?.message || "Unable to save page details.");
+      } else {
+        setError("Unable to save page details.");
+      }
     } finally {
       setLoading(false);
     }
@@ -242,6 +257,8 @@ export function PageForm({
           {currency(followerPricingHint.reelPrice)}
         </div>
       ) : null}
+      {message ? <p className="md:col-span-2 text-sm text-emerald-700">{message}</p> : null}
+      {error ? <p className="md:col-span-2 text-sm text-rose-600">{error}</p> : null}
       <label className="md:col-span-2 flex flex-col gap-2 text-sm font-medium text-ink/80">
         <span>Description</span>
         <textarea

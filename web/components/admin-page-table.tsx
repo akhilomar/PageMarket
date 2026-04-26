@@ -35,13 +35,20 @@ type AdminPageRecord = {
 export function AdminPageTable({ pages }: { pages: AdminPageRecord[] }) {
   const router = useRouter();
   const [updatingPageId, setUpdatingPageId] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   async function updateStatus(pageId: string, status: AdminPageRecord["status"]) {
     setUpdatingPageId(pageId);
+    setStatusMessage(null);
+    setStatusError(null);
 
     try {
       await api.patch(`/pages/${pageId}/status`, { status });
+      setStatusMessage(`Page status changed to ${status}.`);
       router.refresh();
+    } catch (error) {
+      setStatusError("Unable to update page status. Please make sure you are logged in as admin and try again.");
     } finally {
       setUpdatingPageId(null);
     }
@@ -49,6 +56,8 @@ export function AdminPageTable({ pages }: { pages: AdminPageRecord[] }) {
 
   return (
     <div className="space-y-4">
+      {statusMessage ? <p className="text-sm text-emerald-700">{statusMessage}</p> : null}
+      {statusError ? <p className="text-sm text-rose-600">{statusError}</p> : null}
       {pages.map((page) => (
         <div key={page.id} className="glass-card grid gap-5 p-5 lg:grid-cols-[100px_1fr_260px]">
           <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-sand">
