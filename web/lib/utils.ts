@@ -23,3 +23,40 @@ export function formatDate(input: string | Date) {
   }).format(new Date(input));
 }
 
+export function getInstagramUsernameFromUrl(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  try {
+    const normalized = value.startsWith("http") ? value : `https://${value}`;
+    const parsedUrl = new URL(normalized);
+    const firstSegment = parsedUrl.pathname.split("/").filter(Boolean)[0];
+    return firstSegment || "";
+  } catch {
+    return value.replace(/^@/, "").split(/[/?#]/)[0];
+  }
+}
+
+export function getFollowerPricingHint(followersCount?: number | null) {
+  const followers = followersCount || 0;
+
+  if (followers <= 0) {
+    return null;
+  }
+
+  const storyPrice = Math.max(25, Math.round(followers / 500));
+  const postPrice = Math.max(50, Math.round(followers / 250));
+  const reelPrice = Math.max(80, Math.round(followers / 180));
+
+  return {
+    storyPrice,
+    postPrice,
+    reelPrice
+  };
+}
+
+export function getGeneratedProfileImageUrl(seed?: string | null) {
+  const safeSeed = encodeURIComponent(seed || "PromoHub");
+  return `https://api.dicebear.com/9.x/initials/svg?seed=${safeSeed}`;
+}

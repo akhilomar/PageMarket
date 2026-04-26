@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { currency } from "@/lib/utils";
+import { currency, getInstagramUsernameFromUrl } from "@/lib/utils";
 
 interface PageCardProps {
   page: {
     id: string;
     pageName: string;
     platform: string;
+    pageUrl: string;
     niche: string;
     city: string;
     followersCount: number;
@@ -22,9 +23,20 @@ interface PageCardProps {
 }
 
 export function PageCard({ page }: PageCardProps) {
+  const username = getInstagramUsernameFromUrl(page.pageUrl);
+
   return (
     <Link href={`/pages/${page.id}`} className="glass-card overflow-hidden transition hover:-translate-y-1">
-      <div className="h-44 bg-gradient-to-br from-sand via-white to-teal/10" />
+      <div className="flex h-44 items-center justify-center overflow-hidden bg-gradient-to-br from-sand via-white to-teal/10">
+        {page.profileImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={page.profileImage} alt={page.pageName} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-3xl font-black text-ink/40 shadow-soft">
+            {page.pageName.slice(0, 1)}
+          </div>
+        )}
+      </div>
       <div className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -32,6 +44,7 @@ export function PageCard({ page }: PageCardProps) {
             <p className="text-sm text-ink/60">
               {page.platform} . {page.niche} . {page.city}
             </p>
+            {username ? <p className="mt-1 text-xs font-semibold text-teal">@{username}</p> : null}
           </div>
           <StatusBadge status={page.status} />
         </div>
@@ -53,4 +66,3 @@ export function PageCard({ page }: PageCardProps) {
     </Link>
   );
 }
-

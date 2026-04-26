@@ -46,6 +46,20 @@ export function FilterBar({
         <Input name="minPrice" type="number" label="Min Price" defaultValue={String(searchParams.minPrice || "")} />
         <Input name="maxPrice" type="number" label="Max Price" defaultValue={String(searchParams.maxPrice || "")} />
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          name="minFollowers"
+          type="number"
+          label="Min Followers"
+          defaultValue={String(searchParams.minFollowers || "")}
+        />
+        <Input
+          name="maxFollowers"
+          type="number"
+          label="Max Followers"
+          defaultValue={String(searchParams.maxFollowers || "")}
+        />
+      </div>
       <div className="flex gap-3">
         <Button className="flex-1" type="submit">
           Apply
@@ -59,4 +73,3 @@ export function FilterBar({
     </form>
   );
 }
-

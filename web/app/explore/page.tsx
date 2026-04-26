@@ -7,7 +7,16 @@ export default async function ExplorePage({
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const pages = await getApprovedPages(Object.fromEntries(Object.entries(searchParams).map(([key, value]) => [key, String(value)])));
+  const normalizedSearchParams = Object.fromEntries(
+    Object.entries(searchParams).flatMap(([key, value]) => {
+      if (typeof value === "string" && value.length > 0) {
+        return [[key, value]];
+      }
+
+      return [];
+    })
+  );
+  const pages = await getApprovedPages(normalizedSearchParams);
 
   return (
     <main className="container-shell grid gap-8 py-12 lg:grid-cols-[300px_1fr]">
@@ -31,4 +40,3 @@ export default async function ExplorePage({
     </main>
   );
 }
-

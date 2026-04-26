@@ -7,6 +7,7 @@ import { PAGE_NICHES, PAGE_PLATFORMS } from "@promohub/shared";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { currency, getFollowerPricingHint, getGeneratedProfileImageUrl } from "@/lib/utils";
 
 type EditablePage = {
   id?: string;
@@ -43,6 +44,8 @@ export function PageForm({
   const [pageName, setPageName] = useState(String(page?.pageName || ""));
   const [pageUrl, setPageUrl] = useState(String(page?.pageUrl || ""));
   const [profileImage, setProfileImage] = useState(String(page?.profileImage || ""));
+  const [followersCount, setFollowersCount] = useState(String(page?.followersCount || ""));
+  const followerPricingHint = getFollowerPricingHint(Number(followersCount) || 0);
 
   function extractInstagramUsername(value: string) {
     const trimmedValue = value.trim();
@@ -81,7 +84,7 @@ export function PageForm({
     if (!page?.id) {
       if (username) {
         setPageUrl(`https://instagram.com/${username}`);
-        setProfileImage(`https://unavatar.io/instagram/${username}`);
+        setProfileImage(getGeneratedProfileImageUrl(formatPageNameFromUsername(username) || username));
         setPageName((currentValue) => currentValue || formatPageNameFromUsername(username));
       } else {
         setPageUrl("");
@@ -172,7 +175,13 @@ export function PageForm({
       <Input name="city" label="City" defaultValue={String(page?.city || "")} />
       <Input name="region" label="Region" defaultValue={String(page?.region || "")} />
       <Input name="language" label="Language" defaultValue={String(page?.language || "")} />
-      <Input name="followersCount" label="Followers Count" type="number" defaultValue={String(page?.followersCount || "")} />
+      <Input
+        name="followersCount"
+        label="Followers Count"
+        type="number"
+        value={followersCount}
+        onChange={(event) => setFollowersCount(event.target.value)}
+      />
       <Input name="averageViews" label="Average Views" type="number" defaultValue={String(page?.averageViews || "")} />
       <Input name="engagementRate" label="Engagement Rate" type="number" step="0.1" defaultValue={String(page?.engagementRate || "")} />
       <Input name="audienceGender" label="Audience Gender" defaultValue={String(page?.audienceGender || "")} />
@@ -194,8 +203,19 @@ export function PageForm({
       </div>
       {!page?.id ? (
         <p className="md:col-span-2 text-sm text-ink/60">
-          We derive the Instagram username from the profile link and prefill the page name, profile URL, and a best-effort avatar source automatically.
+          We derive the Instagram username from the profile link and prefill the page name, profile URL, and a reliable generated avatar automatically.
         </p>
+      ) : null}
+      {followerPricingHint ? (
+        <div className="md:col-span-2 rounded-3xl bg-sand/70 p-4 text-sm text-ink/75">
+          Suggested starter pricing for this follower range:
+          {" Story "}
+          {currency(followerPricingHint.storyPrice)}
+          {" . Post "}
+          {currency(followerPricingHint.postPrice)}
+          {" . Reel "}
+          {currency(followerPricingHint.reelPrice)}
+        </div>
       ) : null}
       <label className="md:col-span-2 flex flex-col gap-2 text-sm font-medium text-ink/80">
         <span>Description</span>

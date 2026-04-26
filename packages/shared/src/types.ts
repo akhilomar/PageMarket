@@ -16,7 +16,8 @@ export interface PageFilters {
   platform?: string;
   minPrice?: string;
   maxPrice?: string;
+  minFollowers?: string;
+  maxFollowers?: string;
   page?: string;
   limit?: string;
 }
-

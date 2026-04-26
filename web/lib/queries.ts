@@ -7,12 +7,21 @@ export async function getApprovedPages(filters: PageFilters) {
   const skip = (page - 1) * limit;
   const minPrice = filters.minPrice ? Number(filters.minPrice) : undefined;
   const maxPrice = filters.maxPrice ? Number(filters.maxPrice) : undefined;
+  const minFollowers = filters.minFollowers ? Number(filters.minFollowers) : undefined;
+  const maxFollowers = filters.maxFollowers ? Number(filters.maxFollowers) : undefined;
 
   const where = {
     status: "APPROVED" as const,
     niche: filters.niche ? { contains: filters.niche, mode: "insensitive" as const } : undefined,
     city: filters.city ? { contains: filters.city, mode: "insensitive" as const } : undefined,
     platform: filters.platform ? { contains: filters.platform, mode: "insensitive" as const } : undefined,
+    followersCount:
+      minFollowers || maxFollowers
+        ? {
+            gte: minFollowers,
+            lte: maxFollowers
+          }
+        : undefined,
     pricing: minPrice || maxPrice
       ? {
           postPrice: {
@@ -49,4 +58,3 @@ export async function getApprovedPages(filters: PageFilters) {
     }
   };
 }
-

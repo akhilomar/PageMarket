@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@promohub/db";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { AdminPageTable } from "@/components/admin-page-table";
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function AdminDashboardPage() {
@@ -8,12 +9,13 @@ export default async function AdminDashboardPage() {
   if (!user) redirect("/login");
   if (user.role !== "ADMIN") redirect("/dashboard");
 
-  const [users, pages, bookings] = await Promise.all([
+  const [users, totalPages, pageRecords, bookings] = await Promise.all([
     prisma.user.count(),
+    prisma.promotionPage.count(),
     prisma.promotionPage.findMany({
-      include: { owner: true },
+      include: { owner: true, pricing: true },
       orderBy: { createdAt: "desc" },
-      take: 8
+      take: 50
     }),
     prisma.booking.count()
   ]);
@@ -31,7 +33,7 @@ export default async function AdminDashboardPage() {
         </div>
         <div className="glass-card p-6">
           <p className="text-sm text-ink/60">Pages</p>
-          <p className="mt-2 text-4xl font-black">{pages.length}</p>
+          <p className="mt-2 text-4xl font-black">{totalPages}</p>
         </div>
         <div className="glass-card p-6">
           <p className="text-sm text-ink/60">Bookings</p>
@@ -39,20 +41,14 @@ export default async function AdminDashboardPage() {
         </div>
       </section>
       <section className="space-y-4">
-        <h2 className="text-2xl font-black">Recent page approvals</h2>
-        <div className="grid gap-4">
-          {pages.map((page) => (
-            <div key={page.id} className="glass-card flex items-center justify-between gap-4 p-5">
-              <div>
-                <p className="font-semibold">{page.pageName}</p>
-                <p className="text-sm text-ink/60">
-                  {page.owner.name} . {page.platform}
-                </p>
-              </div>
-              <StatusBadge status={page.status} />
-            </div>
-          ))}
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-black">Registered pages</h2>
+            <p className="text-sm text-ink/60">Review every submitted page, pricing snapshot, owner details, and set active or inactive status.</p>
+          </div>
+          <StatusBadge status="ADMIN" />
         </div>
+        <AdminPageTable pages={pageRecords} />
       </section>
     </main>
   );

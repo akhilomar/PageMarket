@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@promohub/db";
 import { Button } from "@/components/ui/button";
-import { currency } from "@/lib/utils";
+import { currency, getInstagramUsernameFromUrl } from "@/lib/utils";
 
 export default async function PageDetailPage({ params }: { params: { id: string } }) {
   const page = await prisma.promotionPage.findUnique({
@@ -11,16 +11,28 @@ export default async function PageDetailPage({ params }: { params: { id: string 
   });
 
   if (!page) notFound();
+  const username = getInstagramUsernameFromUrl(page.pageUrl);
 
   return (
     <main className="container-shell grid gap-8 py-12 lg:grid-cols-[1.5fr_0.8fr]">
       <section className="glass-card space-y-6 p-8">
+        <div className="overflow-hidden rounded-[2rem] bg-sand">
+          {page.profileImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={page.profileImage} alt={page.pageName} className="h-72 w-full object-cover" />
+          ) : (
+            <div className="flex h-72 items-center justify-center text-7xl font-black text-ink/30">
+              {page.pageName.slice(0, 1)}
+            </div>
+          )}
+        </div>
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-coral">{page.platform}</p>
           <h1 className="text-4xl font-black">{page.pageName}</h1>
           <p className="mt-2 text-ink/65">
             {page.niche} . {page.city}, {page.state}
           </p>
+          {username ? <p className="mt-2 text-sm font-semibold text-teal">@{username}</p> : null}
         </div>
         <p className="text-base leading-7 text-ink/75">{page.description || "No description added yet."}</p>
         <div className="grid gap-4 md:grid-cols-3">
@@ -62,4 +74,3 @@ export default async function PageDetailPage({ params }: { params: { id: string 
     </main>
   );
 }
-
